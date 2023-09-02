@@ -269,7 +269,7 @@ class _MainScreenState extends State<MainScreen> {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Colors.red,
                         borderRadius: BorderRadius.circular(22.0),
                         boxShadow: [
                           BoxShadow(
