@@ -231,140 +231,245 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
-      body: Stack(
+      body:
+      // Stack(
+      //   children: [
+      //     GoogleMap(
+      //       padding: EdgeInsets.only(bottom: bottomPaddingOfMap, top: 400),
+      //       mapType: MapType.normal,
+      //       myLocationButtonEnabled: true,
+      //       initialCameraPosition: _kGooglePlex,
+      //       myLocationEnabled: true,
+      //       zoomGesturesEnabled: true,
+      //       zoomControlsEnabled: false,
+      //       // markers: markersSet,
+      //       markers: Set.of([_carMarker]),
+      //       circles: circlesSet,
+      //       polylines: polylineSet,
+      //       onMapCreated: (GoogleMapController controller) {
+      //         _controllerGoogleMap.complete(controller);
+      //         newGoogleMapController = controller;
+      //         fetchPlaces();
+      //
+      //         setState(() {
+      //           bottomPaddingOfMap = 300.0;
+      //         });
+      //         _determinePosition(context);
+      //       },
+      //     ),
+      //
+      //     Padding(
+      //       padding: const EdgeInsets.only(top: 50, left: 20, right: 20),
+      //       child:
+      //       Row(
+      //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //         children: [
+      //           GestureDetector(
+      //             onTap: () {
+      //               scaffoldkey.currentState?.openDrawer();
+      //             },
+      //             child: Container(
+      //               decoration: BoxDecoration(
+      //                   color: Colors.white,
+      //                   borderRadius: BorderRadius.circular(22.0),
+      //                   boxShadow: [
+      //                     BoxShadow(
+      //                       color: Colors.black,
+      //                       blurRadius: 6.0,
+      //                       spreadRadius: 0.5,
+      //                       offset: Offset(0.7, 0.7),
+      //                     )
+      //                   ]),
+      //               child:
+      //               CircleAvatar(
+      //                 backgroundColor: Colors.white,
+      //                 child: Icon(
+      //                   Icons.menu,
+      //                   color: Colors.black,
+      //                 ),
+      //                 radius: 20.0,
+      //               ),
+      //             ),
+      //           ),
+      //
+      //           GestureDetector(
+      //             onTap: () async {
+      //               var res = await Navigator.push(
+      //                   context,
+      //                   MaterialPageRoute(
+      //                       builder: (context) => SearchScreen( )));
+      //
+      //               if (res == "obtainDirection") {
+      //                 await  getPlaceDirection();
+      //               }
+      //             },
+      //             child: Container(
+      //               height: 40,
+      //               width: MediaQuery.of(context).size.width / 1.6,
+      //               decoration: BoxDecoration(
+      //                 color: Colors.white,
+      //                 borderRadius: BorderRadius.circular(5.0),
+      //                 boxShadow: [
+      //                   BoxShadow(
+      //                     color: Colors.black54,
+      //                     blurRadius: 16.0,
+      //                     offset: Offset(0.7, 0.7),
+      //                   )
+      //                 ],
+      //               ),
+      //               child: Row(
+      //                 mainAxisAlignment: MainAxisAlignment.center,
+      //                 children: [
+      //                   Icon(
+      //                     Icons.search,
+      //                     color: Colors.grey,
+      //                   ),
+      //                   SizedBox(
+      //                     width: 12.0,
+      //                   ),
+      //                   Text(
+      //                     "Search Drop Off",
+      //                     style: TextStyle(color: Colors.grey),
+      //                   ),
+      //                 ],
+      //               ),
+      //             ),
+      //           ),
+      //
+      //           Positioned(
+      //             top: 100,right: 10,
+      //             child: GestureDetector(
+      //               onTap: () {
+      //                 Navigator.push(
+      //                     context,
+      //                     MaterialPageRoute(
+      //                         builder: (context) => MapScreen()));
+      //               },
+      //               child: CircleAvatar(
+      //                 backgroundColor: Colors.white,
+      //                 child: Icon(
+      //                   Icons.local_gas_station_outlined,
+      //                   color: Colors.black,
+      //                 ),
+      //                 radius: 20.0,
+      //               ),
+      //             ),
+      //           ),
+      //           GestureDetector(
+      //               onTap: (){
+      //                 Navigator.push(
+      //                     context,
+      //                     MaterialPageRoute(
+      //                         builder: (context) => BluetoothApp()));
+      //
+      //               },
+      //               child: Icon(Icons.bluetooth))
+      //
+      //         ],
+      //       ),
+      //     ),
+      //
+      //
+      //
+      //
+      //   ],
+      // ),
+      Column(
+          children: [
+      Padding(padding: const EdgeInsets.only(top: 50, left: 20, right: 20),
+      child:
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          GoogleMap(
-            padding: EdgeInsets.only(bottom: bottomPaddingOfMap, top: 400),
-            mapType: MapType.normal,
-            myLocationButtonEnabled: true,
-            initialCameraPosition: _kGooglePlex,
-            myLocationEnabled: true,
-            zoomGesturesEnabled: true,
-            zoomControlsEnabled: false,
-            // markers: markersSet,
-            markers: Set.of([_carMarker]),
-            circles: circlesSet,
-            polylines: polylineSet,
-            onMapCreated: (GoogleMapController controller) {
-              _controllerGoogleMap.complete(controller);
-              newGoogleMapController = controller;
-              fetchPlaces();
-
-              setState(() {
-                bottomPaddingOfMap = 300.0;
-              });
-              _determinePosition(context);
+          GestureDetector(
+            onTap: () {
+              scaffoldkey.currentState?.openDrawer();
             },
+            child: Container(
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black,
+                      blurRadius: 6.0,
+                      spreadRadius: 0.5,
+                      offset: Offset(0.7, 0.7),
+                    )
+                  ]),
+              child:
+              CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(
+                  Icons.menu,
+                  color: Colors.black,
+                ),
+                radius: 20.0,
+              ),
+            ),
           ),
 
-          Padding(
-            padding: const EdgeInsets.only(top: 50, left: 20, right: 20),
-            child:
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    scaffoldkey.currentState?.openDrawer();
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(22.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black,
-                            blurRadius: 6.0,
-                            spreadRadius: 0.5,
-                            offset: Offset(0.7, 0.7),
-                          )
-                        ]),
-                    child:
-                    CircleAvatar(
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.menu,
-                        color: Colors.black,
-                      ),
-                      radius: 20.0,
-                    ),
+          GestureDetector(
+            onTap: () async {
+              var res = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => SearchScreen( )));
+
+              if (res == "obtainDirection") {
+                await  getPlaceDirection();
+              }
+            },
+            child: Container(
+              height: 40,
+              width: MediaQuery.of(context).size.width / 1.6,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(5.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black54,
+                    blurRadius: 16.0,
+                    offset: Offset(0.7, 0.7),
+                  )
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.search,
+                    color: Colors.grey,
                   ),
-                ),
-
-                GestureDetector(
-                  onTap: () async {
-                    var res = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => SearchScreen( )));
-
-                    if (res == "obtainDirection") {
-                    await  getPlaceDirection();
-                    }
-                  },
-                  child: Container(
-                    height: 40,
-                    width: MediaQuery.of(context).size.width / 1.6,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(5.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black54,
-                          blurRadius: 16.0,
-                          offset: Offset(0.7, 0.7),
-                        )
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(
-                          width: 12.0,
-                        ),
-                        Text(
-                          "Search Drop Off",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
+                  SizedBox(
+                    width: 12.0,
                   ),
-                ),
-
-                Positioned(
-                  top: 100,right: 10,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => MapScreen()));
-                    },
-                    child: CircleAvatar(
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.local_gas_station_outlined,
-                        color: Colors.black,
-                      ),
-                      radius: 20.0,
-                    ),
+                  Text(
+                    "Search Drop Off",
+                    style: TextStyle(color: Colors.grey),
                   ),
+                ],
+              ),
+            ),
+          ),
+
+          Positioned(
+            top: 100,right: 10,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => MapScreen()));
+              },
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(
+                  Icons.local_gas_station_outlined,
+                  color: Colors.black,
                 ),
-                GestureDetector(
-                    onTap: (){
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => BluetoothApp()));
-
-                    },
-                    child: Icon(Icons.bluetooth))
-
-              ],
+                radius: 20.0,
+              ),
             ),
           ),
 
@@ -373,6 +478,68 @@ class _MainScreenState extends State<MainScreen> {
 
         ],
       ),
+      ),
+            SizedBox(height: 30,),
+            Column(
+              children: [
+                Container(
+                  height: MediaQuery.of(context).size.height/1.5,
+                  child: GoogleMap(
+                    padding: EdgeInsets.only(bottom: bottomPaddingOfMap, top: 400),
+                    mapType: MapType.normal,
+                    myLocationButtonEnabled: true,
+                    initialCameraPosition: _kGooglePlex,
+                    myLocationEnabled: true,
+                    zoomGesturesEnabled: true,
+                    zoomControlsEnabled: false,
+                    // markers: markersSet,
+                    markers: Set.of([_carMarker]),
+                    circles: circlesSet,
+                    polylines: polylineSet,
+                    onMapCreated: (GoogleMapController controller) {
+                      _controllerGoogleMap.complete(controller);
+                      newGoogleMapController = controller;
+                      fetchPlaces();
+
+                      setState(() {
+                        bottomPaddingOfMap = 300.0;
+                      });
+                      _determinePosition(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 30,
+            ),
+
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20), // Set the border radius here
+                color: Colors.red,
+              ),
+              height: MediaQuery.of(context).size.height / 16,
+              width: MediaQuery.of(context).size.width / 2,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => BluetoothApp()),
+                  );
+                },
+                child: Icon(Icons.bluetooth,color: Colors.white60, size: 25),
+              ),
+            )
+
+
+
+
+
+
+          ],
+      ),
+
     );
   }
 
@@ -391,23 +558,40 @@ class _MainScreenState extends State<MainScreen> {
         barrierDismissible: false,
         builder: (BuildContext context) {
           return AlertDialog(
-            content: Flex(
-              direction: Axis.horizontal,
+            content: Row(
               children: <Widget>[
                 CircularProgressIndicator(),
-                Padding(
-                  padding: EdgeInsets.only(left: 15),
+                SizedBox(width: 15),
+                Text(
+                  "Setting Dropoff, Please Wait ...",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                Flexible(
-                    flex: 8,
-                    child: Text(
-                      "Setting Dropoff , Please Wait ...",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    )),
               ],
             ),
           );
+
+
+          //   AlertDialog(
+          //   content: Flex(
+          //     direction: Axis.horizontal,
+          //     children: <Widget>[
+          //       CircularProgressIndicator(),
+          //       Padding(
+          //         padding: EdgeInsets.only(left: 15),
+          //       ),
+          //       Flexible(
+          //           flex: 8,
+          //           child: Text(
+          //             "Setting Dropoff , Please Wait ...",
+          //             style:
+          //                 TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          //           )),
+          //     ],
+          //   ),
+          // );
         });
 
     var details = await AssistantMethods.obtainPlaceDirectionDetails(
