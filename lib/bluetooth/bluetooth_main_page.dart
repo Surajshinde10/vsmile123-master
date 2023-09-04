@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../constant/const.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -142,50 +144,66 @@ class _BluetoothAppState extends State<BluetoothApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kScaffoldBackground,
       appBar: AppBar(
-        title: Text('Bluetooth Example'),
+        backgroundColor: KCard1,
+        title: Center(child: Text('Bluetooth Device Connectivity',style: TextStyle(fontWeight: FontWeight.w600,fontSize: 16),)),
       ),
-      body: Column(
-        children: <Widget>[
-          Text('Bluetooth State: $_bluetoothState'),
-          ElevatedButton(
-            onPressed: () {
-              if (_bluetoothState == BluetoothState.STATE_ON) {
-                _startDiscovery();
-              } else {
-                print('Turn on your Bluetooth device');
-              }
-            },
-            child: Text('Discover Devices'),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _devicesList.length,
-              itemBuilder: (context, index) {
-                BluetoothDevice device = _devicesList[index];
-                return ListTile(
-                  title: Text(device.name ?? 'Unknown Device'),
-                  subtitle: Text(device.address),
-                  onTap: () {
-                    print('Tapped on device: ${device.name}');
-                    if (_connection != null) {
-                      _connection!.dispose();
-                      _connection = null;
-                    }
-                    _connectToDevice(device);
-                    print(_connection);
-                  },
-                );
-              },
+      body: Center(
+        child: Column(
+          children: <Widget>[
+            SizedBox(height: 100,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+              Text('BT Status :',style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold),),
+              SizedBox(width: 10,),
+              Text( '$_bluetoothState',style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold,color: Colors.black45),),
+            ],),
+
+            SizedBox(height: 60,),
+            Container(
+              child: ElevatedButton(
+
+                onPressed: () {
+                  if (_bluetoothState == BluetoothState.STATE_ON) {
+                    _startDiscovery();
+                  } else {
+                    print('Turn on your Bluetooth device');
+                  }
+                },
+                child: Text('Discover Devices'),
+              ),
             ),
-          ),
-          ElevatedButton(
-            onPressed: _connection != null
-                ? () => _sendMessage("Hello, Bluetooth!")
-                : null,
-            child: Text('Send Message'),
-          ),
-        ],
+            Expanded(
+              child: ListView.builder(
+                itemCount: _devicesList.length,
+                itemBuilder: (context, index) {
+                  BluetoothDevice device = _devicesList[index];
+                  return ListTile(
+                    title: Text(device.name ?? 'Unknown Device'),
+                    subtitle: Text(device.address),
+                    onTap: () {
+                      print('Tapped on device: ${device.name}');
+                      if (_connection != null) {
+                        _connection!.dispose();
+                        _connection = null;
+                      }
+                      _connectToDevice(device);
+                      print(_connection);
+                    },
+                  );
+                },
+              ),
+            ),
+            ElevatedButton(
+              onPressed: _connection != null
+                  ? () => _sendMessage("Hello, Bluetooth!")
+                  : null,
+              child: Text('Send Message'),
+            ),
+          ],
+        ),
       ),
     );
   }

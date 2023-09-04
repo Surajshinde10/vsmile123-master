@@ -11,7 +11,8 @@
   import 'package:vsmile/dataHandler/appData.dart';
   import 'package:vsmile/models/address.dart';
   import 'package:vsmile/models/placePredictions.dart';
-  import 'Divider.dart';
+  import '../constant/const.dart';
+import 'Divider.dart';
   
   class SearchScreen extends StatefulWidget {
     const SearchScreen({super.key});
@@ -43,12 +44,13 @@
   
   
       return Scaffold(
+        backgroundColor: kScaffoldBackground,
         body: Column(
           children: [
             Container(
-              height: 200.0,
+              height: MediaQuery.of(context).size.height/4,
               decoration: BoxDecoration(
-                color: Colors.blueAccent,
+                color: KCard1,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black,
@@ -57,8 +59,8 @@
                   )
                 ],
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(50),
-                  topRight: Radius.circular(50),
+                  topLeft: Radius.circular(38),
+                  topRight: Radius.circular(38),
                 ),
               ),
               child: Padding(
@@ -66,9 +68,10 @@
                 child: Column(
                   children: [
                     SizedBox(
-                      height: 5.0,
+                      height: 20.0,
                     ),
                     Stack(
+
                       children: [
                         GestureDetector(
                           onTap: () {
@@ -79,7 +82,7 @@
                         Center(
                           child: Text(
                             "Set Destination Here",
-                            style: TextStyle(fontSize: 18.0, fontFamily: "Brand-Bold"),
+                            style: TextStyle(fontSize: 18.0, fontFamily: "Brand-Bold",fontWeight: FontWeight.bold),
                           ),
                         )
                       ],
@@ -89,15 +92,15 @@
                     ),
                     Row(
                       children: [
-                        Image.asset("images/pickico.png", height: 16.0, width: 16.0),
+                        Icon(Icons.home,color: Colors.black45,),
                         SizedBox(
                           width: 18.0,
                         ),
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.grey[400],
-                              borderRadius: BorderRadius.circular(5.0),
+                              // color: Colors.grey[400],
+                              borderRadius: BorderRadius.circular(15.0),
                             ),
                             child: Padding(
                               padding: EdgeInsets.all(3.0),
@@ -105,7 +108,7 @@
                                 controller: pickuptextEditingController,
                                 decoration: InputDecoration(
                                   hintText: "Current Location",
-                                  fillColor: Colors.grey[400],
+                                  fillColor: kScaffoldBackground,
                                   filled: true,
                                   border: InputBorder.none,
                                   isDense: true,
@@ -122,15 +125,15 @@
                     ),
                     Row(
                       children: [
-                        Image.asset("images/desticon.png", height: 16.0, width: 16.0),
+                        Icon(Icons.location_on,color: Colors.black45,),
                         SizedBox(
                           width: 18.0,
                         ),
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.grey[400],
-                              borderRadius: BorderRadius.circular(5.0),
+                              // color: Colors.grey[400],
+                              borderRadius: BorderRadius.circular(15.0),
                             ),
                             child: Padding(
                               padding: EdgeInsets.all(3.0),
@@ -140,8 +143,8 @@
                                 },
                                 controller: dropOftextEditingController,
                                 decoration: InputDecoration(
-                                  hintText: "Choose Your Destination Here?",
-                                  fillColor: Colors.grey[400],
+                                  hintText: "Search Your Desired Gas Station?",
+                                  fillColor: kScaffoldBackground,
                                   filled: true,
                                   border: InputBorder.none,
                                   isDense: true,

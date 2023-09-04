@@ -17,6 +17,7 @@ import 'package:vsmile/assistance/assistantMethod.dart';
 import 'package:vsmile/dataHandler/appData.dart';
 
 import '../bluetooth/bluetooth_main_page.dart';
+import '../constant/const.dart';
 import 'placesFetch.dart';
 
 class MainScreen extends StatefulWidget {
@@ -157,14 +158,80 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: kScaffoldBackground,
       key: scaffoldkey,
-      // appBar: AppBar(
-      //   title: Text("Main Screen"),
-      // ),
+      appBar: AppBar(
+        backgroundColor: KCard1,
+        title: GestureDetector(
+          onTap: () async {
+            var res = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => SearchScreen( )));
+
+            if (res == "obtainDirection") {
+              await  getPlaceDirection();
+            }
+          },
+          child: Container(
+            height: 38,
+            width: MediaQuery.of(context).size.width / 1.4,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black54,
+                  blurRadius: 2.0,
+                  offset: Offset(0.7, 0.7),
+                )
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.search,
+                  color: Colors.grey,
+                ),
+                SizedBox(
+                  width: 8.0,
+                ),
+                Text(
+                  "Search for gas Station",
+                  style: TextStyle(color: Colors.grey,fontSize: 18),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: GestureDetector(
+              onTap: () {
+                // Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //         builder: (context) => MapScreen()));
+              },
+              child: CircleAvatar(
+                backgroundColor: KCard1,
+                child: Icon(
+                  Icons.notification_add_outlined,
+                  color: Colors.black,size: 25,
+                ),
+                radius: 20.0,
+              ),
+            ),
+          ),
+        ],
+      ),
       drawer: Container(
-        color: Colors.white,
+        // color: Colors.white,
         width: 255.0,
         child: Drawer(
+
           child: ListView(
             children: [
               Container(
@@ -177,6 +244,7 @@ class _MainScreenState extends State<MainScreen> {
                         "images/user_icon.png",
                         height: 65.0,
                         width: 65.0,
+                        color: Colors.black54,
                       ),
                       SizedBox(
                         width: 16.0,
@@ -232,312 +300,123 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
       body:
-      // Stack(
-      //   children: [
-      //     GoogleMap(
-      //       padding: EdgeInsets.only(bottom: bottomPaddingOfMap, top: 400),
-      //       mapType: MapType.normal,
-      //       myLocationButtonEnabled: true,
-      //       initialCameraPosition: _kGooglePlex,
-      //       myLocationEnabled: true,
-      //       zoomGesturesEnabled: true,
-      //       zoomControlsEnabled: false,
-      //       // markers: markersSet,
-      //       markers: Set.of([_carMarker]),
-      //       circles: circlesSet,
-      //       polylines: polylineSet,
-      //       onMapCreated: (GoogleMapController controller) {
-      //         _controllerGoogleMap.complete(controller);
-      //         newGoogleMapController = controller;
-      //         fetchPlaces();
-      //
-      //         setState(() {
-      //           bottomPaddingOfMap = 300.0;
-      //         });
-      //         _determinePosition(context);
-      //       },
-      //     ),
-      //
-      //     Padding(
-      //       padding: const EdgeInsets.only(top: 50, left: 20, right: 20),
-      //       child:
-      //       Row(
-      //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //         children: [
-      //           GestureDetector(
-      //             onTap: () {
-      //               scaffoldkey.currentState?.openDrawer();
-      //             },
-      //             child: Container(
-      //               decoration: BoxDecoration(
-      //                   color: Colors.white,
-      //                   borderRadius: BorderRadius.circular(22.0),
-      //                   boxShadow: [
-      //                     BoxShadow(
-      //                       color: Colors.black,
-      //                       blurRadius: 6.0,
-      //                       spreadRadius: 0.5,
-      //                       offset: Offset(0.7, 0.7),
-      //                     )
-      //                   ]),
-      //               child:
-      //               CircleAvatar(
-      //                 backgroundColor: Colors.white,
-      //                 child: Icon(
-      //                   Icons.menu,
-      //                   color: Colors.black,
-      //                 ),
-      //                 radius: 20.0,
-      //               ),
-      //             ),
-      //           ),
-      //
-      //           GestureDetector(
-      //             onTap: () async {
-      //               var res = await Navigator.push(
-      //                   context,
-      //                   MaterialPageRoute(
-      //                       builder: (context) => SearchScreen( )));
-      //
-      //               if (res == "obtainDirection") {
-      //                 await  getPlaceDirection();
-      //               }
-      //             },
-      //             child: Container(
-      //               height: 40,
-      //               width: MediaQuery.of(context).size.width / 1.6,
-      //               decoration: BoxDecoration(
-      //                 color: Colors.white,
-      //                 borderRadius: BorderRadius.circular(5.0),
-      //                 boxShadow: [
-      //                   BoxShadow(
-      //                     color: Colors.black54,
-      //                     blurRadius: 16.0,
-      //                     offset: Offset(0.7, 0.7),
-      //                   )
-      //                 ],
-      //               ),
-      //               child: Row(
-      //                 mainAxisAlignment: MainAxisAlignment.center,
-      //                 children: [
-      //                   Icon(
-      //                     Icons.search,
-      //                     color: Colors.grey,
-      //                   ),
-      //                   SizedBox(
-      //                     width: 12.0,
-      //                   ),
-      //                   Text(
-      //                     "Search Drop Off",
-      //                     style: TextStyle(color: Colors.grey),
-      //                   ),
-      //                 ],
-      //               ),
-      //             ),
-      //           ),
-      //
-      //           Positioned(
-      //             top: 100,right: 10,
-      //             child: GestureDetector(
-      //               onTap: () {
-      //                 Navigator.push(
-      //                     context,
-      //                     MaterialPageRoute(
-      //                         builder: (context) => MapScreen()));
-      //               },
-      //               child: CircleAvatar(
-      //                 backgroundColor: Colors.white,
-      //                 child: Icon(
-      //                   Icons.local_gas_station_outlined,
-      //                   color: Colors.black,
-      //                 ),
-      //                 radius: 20.0,
-      //               ),
-      //             ),
-      //           ),
-      //           GestureDetector(
-      //               onTap: (){
-      //                 Navigator.push(
-      //                     context,
-      //                     MaterialPageRoute(
-      //                         builder: (context) => BluetoothApp()));
-      //
-      //               },
-      //               child: Icon(Icons.bluetooth))
-      //
-      //         ],
-      //       ),
-      //     ),
-      //
-      //
-      //
-      //
-      //   ],
-      // ),
-      Column(
-          children: [
-      Padding(padding: const EdgeInsets.only(top: 50, left: 20, right: 20),
-      child:
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () {
-              scaffoldkey.currentState?.openDrawer();
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(22.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black,
-                      blurRadius: 6.0,
-                      spreadRadius: 0.5,
-                      offset: Offset(0.7, 0.7),
-                    )
-                  ]),
-              child:
-              CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(
-                  Icons.menu,
-                  color: Colors.black,
-                ),
-                radius: 20.0,
-              ),
-            ),
-          ),
+          Stack(
+            children: [
 
-          GestureDetector(
-            onTap: () async {
-              var res = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => SearchScreen( )));
-
-              if (res == "obtainDirection") {
-                await  getPlaceDirection();
-              }
-            },
-            child: Container(
-              height: 40,
-              width: MediaQuery.of(context).size.width / 1.6,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(5.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black54,
-                    blurRadius: 16.0,
-                    offset: Offset(0.7, 0.7),
-                  )
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            ],
+          )
+      SingleChildScrollView(
+        child: Column(
+            children: [
+              SizedBox(height: 8,),
+              Column(
                 children: [
-                  Icon(
-                    Icons.search,
-                    color: Colors.grey,
+                  Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color:  KCard1,
+                      ),
+
+                      height: MediaQuery.of(context).size.height/18,
+                      width: MediaQuery.of(context).size.width/1.2,
+                      child:
+                      Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => MapScreen()));
+                          },
+                          child: CircleAvatar(
+                            backgroundColor: KCard1,
+                            child: Icon(
+                              Icons.local_gas_station_outlined,
+                              color: Colors.black,
+                            ),
+                            radius: 40.0,
+                          ),
+                        ),
+                        Text("List of nearby gas Station",style: TextStyle(fontSize: 16,fontWeight: FontWeight.w600),)
+                      ],
+                      )
+
+                    ),
                   ),
-                  SizedBox(
-                    width: 12.0,
-                  ),
-                  Text(
-                    "Search Drop Off",
-                    style: TextStyle(color: Colors.grey),
+                  SizedBox(height: 5,),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.red,
+                    ),
+                    height: MediaQuery.of(context).size.height/1.4,
+                    width: double.infinity,
+                    child: GoogleMap(
+                      padding: EdgeInsets.only(bottom: bottomPaddingOfMap, top: 400),
+                      mapType: MapType.normal,
+                      myLocationButtonEnabled: true,
+                      initialCameraPosition: _kGooglePlex,
+                      myLocationEnabled: true,
+                      zoomGesturesEnabled: true,
+                      zoomControlsEnabled: false,
+                      // markers: markersSet,
+                      markers: Set.of([_carMarker]),
+                      circles: circlesSet,
+                      polylines: polylineSet,
+                      onMapCreated: (GoogleMapController controller) {
+                        _controllerGoogleMap.complete(controller);
+                        newGoogleMapController = controller;
+                        fetchPlaces();
+
+                        setState(() {
+                          bottomPaddingOfMap = 300.0;
+                        });
+                        _determinePosition(context);
+                      },
+                    ),
                   ),
                 ],
               ),
-            ),
-          ),
-
-          Positioned(
-            top: 100,right: 10,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => MapScreen()));
-              },
-              child: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(
-                  Icons.local_gas_station_outlined,
-                  color: Colors.black,
-                ),
-                radius: 20.0,
+              SizedBox(
+                height: 20,
               ),
-            ),
-          ),
 
-
-
-
-        ],
-      ),
-      ),
-            SizedBox(height: 30,),
-            Column(
-              children: [
-                Container(
-                  height: MediaQuery.of(context).size.height/1.5,
-                  child: GoogleMap(
-                    padding: EdgeInsets.only(bottom: bottomPaddingOfMap, top: 400),
-                    mapType: MapType.normal,
-                    myLocationButtonEnabled: true,
-                    initialCameraPosition: _kGooglePlex,
-                    myLocationEnabled: true,
-                    zoomGesturesEnabled: true,
-                    zoomControlsEnabled: false,
-                    // markers: markersSet,
-                    markers: Set.of([_carMarker]),
-                    circles: circlesSet,
-                    polylines: polylineSet,
-                    onMapCreated: (GoogleMapController controller) {
-                      _controllerGoogleMap.complete(controller);
-                      newGoogleMapController = controller;
-                      fetchPlaces();
-
-                      setState(() {
-                        bottomPaddingOfMap = 300.0;
-                      });
-                      _determinePosition(context);
-                    },
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: 30,
-            ),
-
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20), // Set the border radius here
-                color: Colors.red,
-              ),
-              height: MediaQuery.of(context).size.height / 16,
-              width: MediaQuery.of(context).size.width / 2,
-              child: GestureDetector(
+              InkWell(
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => BluetoothApp()),
                   );
                 },
-                child: Icon(Icons.bluetooth,color: Colors.white60, size: 25),
-              ),
-            )
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.red,
+                  ),
+                  height: MediaQuery.of(context).size.height / 18,
+                  width: MediaQuery.of(context).size.width / 1.2,
+                  child:Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+        Icon(Icons.bluetooth, color: Colors.white60, size: 25),
+SizedBox(width: 10,),
+        Text("Connect Your device to vehicle ",style: TextStyle(color: Colors.white60,fontSize: 14,fontWeight: FontWeight.bold),),
+    ],
+    )
+
+                ),
+              )
 
 
 
 
 
 
-          ],
+
+            ],
+        ),
       ),
 
     );
