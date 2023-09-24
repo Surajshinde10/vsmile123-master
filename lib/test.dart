@@ -131,6 +131,75 @@ class _MapViewState extends State<MapView> {
     });
   }
 
+  // Call this method with your current location's coordinates (LatLng)
+  Future<List<Marker>> _fetchPetrolPumpsAndGasStations(LatLng currentLocation) async {
+    final apiKey = ""; // Replace with your Google Maps API Key
+
+    // final apiKey = "AIzaSyB33yWL3b5E00suRjPn5nMuPr3bZ_iHnqE"; // Replace with your Google Maps API Key
+    final radius = 10000; // 10 kilometers in meters
+
+    final location = "${currentLocation.latitude},${currentLocation.longitude}";
+    final types = "gas_station|petrol_station"; // Include both gas_station and petrol_station
+
+    final url = Uri.parse(
+      "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+          "?location=$location"
+          "&radius=$radius"
+          "&types=$types"
+          "&key=$apiKey",
+    );
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['status'] == 'OK') {
+        final results = data['results'];
+        List<Marker> markers = [];
+
+        for (var result in results) {
+          String name = result['name'];
+          double latitude = result['geometry']['location']['lat'];
+          double longitude = result['geometry']['location']['lng'];
+
+          // Create a Marker for the petrol pump or gas station
+          Marker marker = Marker(
+            markerId: MarkerId(name),
+            position: LatLng(latitude, longitude),
+            infoWindow: InfoWindow(
+              title: name,
+            ),
+          );
+
+          markers.add(marker);
+        }
+
+        return markers;
+      } else {
+        // Handle API error here.
+        print("API Error: ${data['status']}");
+        throw Exception("API Error: ${data['status']}");
+      }
+    } else {
+      // Handle HTTP error here.
+      print("HTTP Error: ${response.statusCode}");
+      throw Exception("HTTP Error: ${response.statusCode}");
+    }
+  }
+
+  Future<LatLng?> _getLatLngFromAddress(String address) async {
+    try {
+      List<Location> locations = await locationFromAddress(address);
+      if (locations.isNotEmpty) {
+        final LatLng latLng = LatLng(locations.first.latitude, locations.first.longitude);
+        return latLng;
+      }
+    } catch (e) {
+      print("Error converting address to LatLng: $e");
+    }
+    return null;
+  }
+
   // Method for retrieving the address
   _getAddress() async {
     try {
@@ -182,7 +251,9 @@ class _MapViewState extends State<MapView> {
 
       // Start Location Marker
       Marker startMarker = Marker(
-        markerId: MarkerId(startCoordinatesString),
+        markerId: MarkerId('start'), // Custom identifier
+
+        // markerId: MarkerId(startCoordinatesString),
         position: LatLng(startLatitude, startLongitude),
         infoWindow: InfoWindow(
           title: 'Start $startCoordinatesString',
@@ -191,9 +262,6 @@ class _MapViewState extends State<MapView> {
         icon: BitmapDescriptor.defaultMarker,
       );
 
-
-
-      // Destination Location Marker
       Marker destinationMarker = Marker(
         markerId: MarkerId(destinationCoordinatesString),
         position: LatLng(destinationLatitude, destinationLongitude),
@@ -202,11 +270,23 @@ class _MapViewState extends State<MapView> {
           snippet: _destinationAddress,
         ),
         icon: BitmapDescriptor.defaultMarker,
+        onTap: () async {
+          double distance = await _calculateDistanceFromCurrentLocation(
+            destinationLatitude,
+            destinationLongitude,
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Distance from current location: ${distance.toStringAsFixed(2)} km'),
+            ),
+          );
+        },
       );
 
-      // Adding the markers to the list
       markers.add(startMarker);
       markers.add(destinationMarker);
+
 
       print(
         'START COORDINATES: ($startLatitude, $startLongitude)',
@@ -285,8 +365,21 @@ class _MapViewState extends State<MapView> {
     return false;
   }
 
+  Future<double> _calculateDistanceFromCurrentLocation(double destinationLatitude, double destinationLongitude) async {
+    double startLatitude = _currentPosition.latitude;
+    double startLongitude = _currentPosition.longitude;
+
+    double distance = _coordinateDistance(
+      startLatitude,
+      startLongitude,
+      destinationLatitude,
+      destinationLongitude,
+    );
+
+    return distance;
+  }
+
   // Formula for calculating distance between two coordinates
-  // https://stackoverflow.com/a/54138876/11910277
   double _coordinateDistance(lat1, lon1, lat2, lon2) {
     var p = 0.017453292519943295;
     var c = cos;
@@ -295,6 +388,7 @@ class _MapViewState extends State<MapView> {
         c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
     return 12742 * asin(sqrt(a));
   }
+
 
   // Create the polylines for showing the route between two places
   _createPolylines(
@@ -305,7 +399,9 @@ class _MapViewState extends State<MapView> {
       ) async {
     polylinePoints = PolylinePoints();
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      "AIzaSyB33yWL3b5E00suRjPn5nMuPr3bZ_iHnqE", // Google Maps API Key
+      "", // Google Maps API Key
+
+      // "AIzaSyB33yWL3b5E00suRjPn5nMuPr3bZ_iHnqE", // Google Maps API Key
       PointLatLng(startLatitude, startLongitude),
       PointLatLng(destinationLatitude, destinationLongitude),
       travelMode: TravelMode.driving,
@@ -346,75 +442,31 @@ class _MapViewState extends State<MapView> {
         body: SingleChildScrollView(
           child: Stack(
             children: <Widget>[
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 10.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      ClipOval(
-                        child: Material(
-                          color: Colors.blue.shade100, // button color
-                          child: InkWell(
-                            splashColor: Colors.blue, // inkwell color
-                            child: SizedBox(
-                              width: 50,
-                              height: 50,
-                              child: Icon(Icons.add),
-                            ),
-                            onTap: () {
-                              mapController.animateCamera(
-                                CameraUpdate.zoomIn(),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      ClipOval(
-                        child: Material(
-                          color: Colors.blue.shade100, // button color
-                          child: InkWell(
-                            splashColor: Colors.blue, // inkwell color
-                            child: SizedBox(
-                              width: 50,
-                              height: 50,
-                              child: Icon(Icons.remove),
-                            ),
-                            onTap: () {
-                              mapController.animateCamera(
-                                CameraUpdate.zoomOut(),
-                              );
-                            },
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
               // Map View
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 350),
+                  padding: const EdgeInsets.only(top: 320),
                   child: Container(
-                    height: height * 0.5,
+                    height: height * 0.54,
                     width: MediaQuery.of(context).size.width / 1.1,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20.0), // Adjust the border radius as needed
                     ),
-                    child: GoogleMap(
-                      markers: Set<Marker>.from(markers),
-                      initialCameraPosition: _initialLocation,
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: false,
-                      mapType: MapType.normal,
-                      zoomGesturesEnabled: true,
-                      zoomControlsEnabled: false,
-                      polylines: Set<Polyline>.of(polylines.values),
-                      onMapCreated: (GoogleMapController controller) {
-                        mapController = controller;
-                      },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20.0), // Same border radius as the container
+                      child: GoogleMap(
+                        markers: Set<Marker>.from(markers),
+                        initialCameraPosition: _initialLocation,
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: false,
+                        mapType: MapType.normal,
+                        zoomGesturesEnabled: true,
+                        zoomControlsEnabled: false,
+                        polylines: Set<Polyline>.of(polylines.values),
+                        onMapCreated: (GoogleMapController controller) {
+                          mapController = controller;
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -517,106 +569,114 @@ class _MapViewState extends State<MapView> {
                               ),
                             ),
                             SizedBox(height: 5),
-                            ElevatedButton(
-                              onPressed: (_startAddress.isNotEmpty && _destinationAddress.isNotEmpty)
-                                  ? () async {
-                                startAddressFocusNode.unfocus();
-                                desrinationAddressFocusNode.unfocus();
-                                setState(() {
-                                  if (markers.isNotEmpty) markers.clear();
-                                  if (polylines.isNotEmpty) polylines.clear();
-                                  if (polylineCoordinates.isNotEmpty) polylineCoordinates.clear();
-                                  _placeDistance = null;
-                                });
 
-                                if (await _calculateDistance()) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Distance Calculated Successfully'),
-                                    ),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Error Calculating Distance'),
-                                    ),
-                                  );
-                                }
-                              }
-                                  : () {
-                                // Destination field is empty, show a message
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Destination field is empty!'),
-                                  ),
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Show Route'.toUpperCase(),
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20.0,
-                                  ),
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                // primary: Colors.red,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              height: height * 0.065,
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(20.0), // Adjust the border radius as needed
-                              ),
-                              child: InkWell(
-                                onTap: () async {
-                                  if (_destinationAddress.isNotEmpty) {
-                                    // Convert the destination address to LatLng
-                                    final destination = await _getLatLngFromAddress(_destinationAddress);
+               Row(
+                 children: [
+                   ElevatedButton(
+                     onPressed: (_startAddress.isNotEmpty && _destinationAddress.isNotEmpty)
+                         ? () async {
+                       startAddressFocusNode.unfocus();
+                       desrinationAddressFocusNode.unfocus();
+                       setState(() {
+                         if (markers.isNotEmpty) markers.clear();
+                         if (polylines.isNotEmpty) polylines.clear();
+                         if (polylineCoordinates.isNotEmpty) polylineCoordinates.clear();
+                         _placeDistance = null;
+                       });
 
-                                    if (destination != null) {
-                                      // Call the method to fetch petrol pumps and gas stations
-                                      final petrolPumpsMarkers = await _fetchPetrolPumpsAndGasStations(destination);
+                       if (await _calculateDistance()) {
+                         ScaffoldMessenger.of(context).showSnackBar(
+                           SnackBar(
+                             content: Text('Distance Calculated Successfully'),
+                           ),
+                         );
+                       } else {
+                         ScaffoldMessenger.of(context).showSnackBar(
+                           SnackBar(
+                             content: Text('Error Calculating Distance'),
+                           ),
+                         );
+                       }
+                     }
+                         : () {
+                       // Destination field is empty, show a message
+                       ScaffoldMessenger.of(context).showSnackBar(
+                         SnackBar(
+                           content: Text('Destination field is empty!'),
+                         ),
+                       );
+                     },
+                     child: Padding(
+                       padding: const EdgeInsets.all(8.0),
+                       child: Text(
+                         'Show Route'.toUpperCase(),
+                         style: TextStyle(fontWeight: FontWeight.w600,
+                           color: Colors.black,
+                           fontSize: 16.0,
+                         ),
+                       ),
+                     ),
+                     style: ElevatedButton.styleFrom(
+                       // primary: Colors.red,
+                       shape: RoundedRectangleBorder(
+                         borderRadius: BorderRadius.circular(20.0),
+                       ),
+                     ),
+                   ),
+                   SizedBox(width: 20,),
+                   Container(
+                     height: height * 0.050,
+                     width: 150,
+                     decoration: BoxDecoration(
+                       color: Colors.red,
+                       borderRadius: BorderRadius.circular(20.0), // Adjust the border radius as needed
+                     ),
+                     child: InkWell(
+                       onTap: () async {
+                         if (_destinationAddress.isNotEmpty) {
+                           // Convert the destination address to LatLng
+                           final destination = await _getLatLngFromAddress(_destinationAddress);
 
-                                      // Update the markers on the map
-                                      setState(() {
-                                        markers.clear();
-                                        markers.addAll(petrolPumpsMarkers);
-                                      });
-                                    }
-                                  } else {
-                                    // Destination field is empty, show a snackbar message
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Destination field is empty!'),
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: Row(
-                                  children: [
-                                    Center(
-                                      child: Text(
-                                        'Add Destinations to search \n       nearby Fuel stations',
-                                        style: TextStyle(
-                                          color: Colors.white60,
-                                          fontSize: 16, // Adjust the font size as needed
-                                          fontWeight: FontWeight.bold, // Adjust the font weight as needed
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 10), // Adjust the spacing between text and button
-                                    Icon(Icons.search, color: Colors.white), // You can customize the icon as needed
-                                  ],
-                                ),
-                              ),
-                            )
+                           if (destination != null) {
+                             // Call the method to fetch petrol pumps and gas stations
+                             final petrolPumpsMarkers = await _fetchPetrolPumpsAndGasStations(destination);
+
+                             // Update the markers on the map
+                             setState(() {
+                               markers.clear();
+                               markers.addAll(petrolPumpsMarkers);
+                             });
+                           }
+                         } else {
+                           // Destination field is empty, show a snackbar message
+                           ScaffoldMessenger.of(context).showSnackBar(
+                             SnackBar(
+                               content: Text('Destination field is empty!'),
+                             ),
+                           );
+                         }
+                       },
+                       child:
+                       Row(
+                         children: [
+                           Center(
+                             child: Text(
+                               '       nearby\n   fuel stations ',
+                               style: TextStyle(
+                                 color: Colors.black,
+                                 fontSize: 14, // Adjust the font size as needed
+                                 fontWeight: FontWeight.bold, // Adjust the font weight as needed
+                               ),
+                             ),
+                           ),
+                           SizedBox(width: 10), // Adjust the spacing between text and button
+                           Icon(Icons.search, color: Colors.white), // You can customize the icon as needed
+                         ],
+                       ),
+                     ),
+                   )
+                 ],
+               )
 
                           ],
                         ),
@@ -625,6 +685,54 @@ class _MapViewState extends State<MapView> {
                   ),
                 ),
               ),
+              SafeArea(
+
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 30.0,top: 600),
+                  child: Column(
+                    children: <Widget>[
+                      ClipOval(
+                        child: Material(
+                          color: Colors.blue.shade100, // button color
+                          child: InkWell(
+                            splashColor: Colors.blue, // inkwell color
+                            child: SizedBox(
+                              width: 30,
+                              height: 30,
+                              child: Icon(Icons.add),
+                            ),
+                            onTap: () {
+                              mapController.animateCamera(
+                                CameraUpdate.zoomIn(),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      ClipOval(
+                        child: Material(
+                          color: Colors.blue.shade100, // button color
+                          child: InkWell(
+                            splashColor: Colors.blue, // inkwell color
+                            child: SizedBox(
+                              width: 30,
+                              height: 30,
+                              child: Icon(Icons.remove),
+                            ),
+                            onTap: () {
+                              mapController.animateCamera(
+                                CameraUpdate.zoomOut(),
+                              );
+                            },
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+
               Center(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 800),
@@ -660,15 +768,15 @@ class _MapViewState extends State<MapView> {
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 10.0, bottom: 10.0),
+                    padding: const EdgeInsets.only(top:650,right: 30),
                     child: ClipOval(
                       child: Material(
                         color: Colors.orange, // button color
                         child: InkWell(
                           splashColor: Colors.orange, // inkwell color
                           child: SizedBox(
-                            width: 56,
-                            height: 56,
+                            width: 40,
+                            height: 40,
                             child: Icon(Icons.my_location),
                           ),
                           onTap: () {
@@ -702,122 +810,5 @@ class _MapViewState extends State<MapView> {
 
 
 
-// Call this method with your current location's coordinates (LatLng)
-  Future<List<Marker>> _fetchPetrolPumpsAndGasStations(LatLng currentLocation) async {
-    final apiKey = "AIzaSyB33yWL3b5E00suRjPn5nMuPr3bZ_iHnqE"; // Replace with your Google Maps API Key
-    final radius = 10000; // 10 kilometers in meters
 
-    final location = "${currentLocation.latitude},${currentLocation.longitude}";
-    final types = "gas_station|petrol_station"; // Include both gas_station and petrol_station
-
-    final url = Uri.parse(
-      "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-          "?location=$location"
-          "&radius=$radius"
-          "&types=$types"
-          "&key=$apiKey",
-    );
-
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['status'] == 'OK') {
-        final results = data['results'];
-        List<Marker> markers = [];
-
-        for (var result in results) {
-          String name = result['name'];
-          double latitude = result['geometry']['location']['lat'];
-          double longitude = result['geometry']['location']['lng'];
-
-          // Create a Marker for the petrol pump or gas station
-          Marker marker = Marker(
-            markerId: MarkerId(name),
-            position: LatLng(latitude, longitude),
-            infoWindow: InfoWindow(
-              title: name,
-            ),
-          );
-
-          markers.add(marker);
-        }
-
-        return markers;
-      } else {
-        // Handle API error here.
-        print("API Error: ${data['status']}");
-        throw Exception("API Error: ${data['status']}");
-      }
-    } else {
-      // Handle HTTP error here.
-      print("HTTP Error: ${response.statusCode}");
-      throw Exception("HTTP Error: ${response.statusCode}");
-    }
-  }
-
-
-
-  Future<void> _fetchPetrolPumps() async {
-    final apiKey = "AIzaSyB33yWL3b5E00suRjPn5nMuPr3bZ_iHnqE"; // Replace with your API Key
-    final radius = 10000; // 10 kilometers in meters
-    final myLocation = _startAddress;
-
-    final url = Uri.parse(
-      "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-          "?location=${myLocation},}"
-          "&radius=$radius"
-          "&types=gas_station"
-          "&key=$apiKey",
-    );
-
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['status'] == 'OK') {
-        final results = data['results'];
-
-        setState(() {
-          markers.clear(); // Clear existing markers
-
-          for (var result in results) {
-            String name = result['name'];
-            double latitude = result['geometry']['location']['lat'];
-            double longitude = result['geometry']['location']['lng'];
-
-            // Create a Marker for the petrol pump
-            Marker marker = Marker(
-              markerId: MarkerId(name),
-              position: LatLng(latitude, longitude),
-              infoWindow: InfoWindow(
-                title: name,
-              ),
-            );
-
-            markers.add(marker);
-          }
-        });
-      } else {
-        // Handle API error here.
-        print("API Error: ${data['status']}");
-      }
-    } else {
-      // Handle HTTP error here.
-      print("HTTP Error: ${response.statusCode}");
-    }
-  }
-
-  Future<LatLng?> _getLatLngFromAddress(String address) async {
-    try {
-      List<Location> locations = await locationFromAddress(address);
-      if (locations.isNotEmpty) {
-        final LatLng latLng = LatLng(locations.first.latitude, locations.first.longitude);
-        return latLng;
-      }
-    } catch (e) {
-      print("Error converting address to LatLng: $e");
-    }
-    return null;
-  }
 }
