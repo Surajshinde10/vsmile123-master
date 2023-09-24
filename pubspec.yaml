@@ -58,6 +58,14 @@ dependencies:
 #  bluetooth_advanced: ^0.0.83
   flutter_blue_plus: ^1.14.11
   get: ^4.6.5
+  google_map_place_picker:
+  geocoding: ^2.1.0
+
+
+
+
+
+
 
 
 

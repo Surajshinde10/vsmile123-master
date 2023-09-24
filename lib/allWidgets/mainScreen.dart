@@ -66,7 +66,7 @@ Future<void> fetchPlaces() async {
   final placesService = PlacesService(mapkey);
 
   final currentLocation =
-      await getCurrentLocation();
+  await getCurrentLocation();
 
   final fetchedPlaces = await placesService.getPlaces(
       currentLocation.latitude, currentLocation.longitude);
@@ -87,7 +87,7 @@ Marker _carMarker = Marker(
 );
 
 final Completer<GoogleMapController> _controllerGoogleMap =
-    Completer<GoogleMapController>();
+Completer<GoogleMapController>();
 
 late GoogleMapController newGoogleMapController;
 
@@ -107,6 +107,7 @@ Set<Circle> circlesSet = {};
 Future<Position> _determinePosition(BuildContext context) async {
   bool serviceEnabled;
   LocationPermission permission;
+
 
   // Test if location services are enabled.
   serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -141,16 +142,17 @@ Future<Position> _determinePosition(BuildContext context) async {
   Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high);
   String address =
-      await AssistantMethods.searchCoordinateAddress(position, context);
+  await AssistantMethods.searchCoordinateAddress(position, context);
 
   print("This is my address: $address");
 
   return position;
 }
 
+
 class _MainScreenState extends State<MainScreen> {
   List<Place> places = [];
-  static final CameraPosition _kGooglePlex = CameraPosition(
+  final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(18.429890, 73.122772),
     zoom: 14.4746,
   );
@@ -300,114 +302,111 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
       body:
-          Stack(
-            children: [
+      Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(height: 8,),
+                Column(
+                  children: [
+                    Center(
+                      child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color:  KCard1,
+                          ),
 
-            ],
-          )
-      SingleChildScrollView(
-        child: Column(
-            children: [
-              SizedBox(height: 8,),
-              Column(
-                children: [
-                  Center(
-                    child: Container(
+                          height: MediaQuery.of(context).size.height/18,
+                          width: MediaQuery.of(context).size.width/1.2,
+                          child:
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => MapScreen()));
+                                },
+                                child: CircleAvatar(
+                                  backgroundColor: KCard1,
+                                  child: Icon(
+                                    Icons.local_gas_station_outlined,
+                                    color: Colors.black,
+                                  ),
+                                  radius: 40.0,
+                                ),
+                              ),
+                              Text("List of nearby gas Station",style: TextStyle(fontSize: 16,fontWeight: FontWeight.w600),)
+                            ],
+                          )
+
+                      ),
+                    ),
+                    SizedBox(height: 5,),
+                    Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        color:  KCard1,
+                        color: Colors.red,
                       ),
+                      height: MediaQuery.of(context).size.height/1.4,
+                      width: double.infinity,
+                      child: GoogleMap(
+                        padding: EdgeInsets.only(bottom: bottomPaddingOfMap, top: 400),
+                        mapType: MapType.normal,
+                        myLocationButtonEnabled: true,
+                        initialCameraPosition: _kGooglePlex,
+                        myLocationEnabled: true,
+                        zoomGesturesEnabled: true,
+                        zoomControlsEnabled: false,
+                        // markers: markersSet,
+                        markers: Set.of([_carMarker]),
+                        circles: circlesSet,
+                        polylines: polylineSet,
+                        onMapCreated: (GoogleMapController controller) {
+                          _controllerGoogleMap.complete(controller);
+                          newGoogleMapController = controller;
+                          fetchPlaces();
 
-                      height: MediaQuery.of(context).size.height/18,
-                      width: MediaQuery.of(context).size.width/1.2,
-                      child:
-                      Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => MapScreen()));
-                          },
-                          child: CircleAvatar(
-                            backgroundColor: KCard1,
-                            child: Icon(
-                              Icons.local_gas_station_outlined,
-                              color: Colors.black,
-                            ),
-                            radius: 40.0,
-                          ),
-                        ),
-                        Text("List of nearby gas Station",style: TextStyle(fontSize: 16,fontWeight: FontWeight.w600),)
-                      ],
+                          setState(() {
+                            bottomPaddingOfMap = 300.0;
+                          });
+                          _determinePosition(context);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => BluetoothApp()),
+                    );
+                  },
+                  child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.red,
+                      ),
+                      height: MediaQuery.of(context).size.height / 18,
+                      width: MediaQuery.of(context).size.width / 1.2,
+                      child:Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.bluetooth, color: Colors.white60, size: 25),
+                          SizedBox(width: 10,),
+                          Text("Connect Your device to vehicle ",style: TextStyle(color: Colors.white60,fontSize: 14,fontWeight: FontWeight.bold),),
+                        ],
                       )
 
-                    ),
                   ),
-                  SizedBox(height: 5,),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.red,
-                    ),
-                    height: MediaQuery.of(context).size.height/1.4,
-                    width: double.infinity,
-                    child: GoogleMap(
-                      padding: EdgeInsets.only(bottom: bottomPaddingOfMap, top: 400),
-                      mapType: MapType.normal,
-                      myLocationButtonEnabled: true,
-                      initialCameraPosition: _kGooglePlex,
-                      myLocationEnabled: true,
-                      zoomGesturesEnabled: true,
-                      zoomControlsEnabled: false,
-                      // markers: markersSet,
-                      markers: Set.of([_carMarker]),
-                      circles: circlesSet,
-                      polylines: polylineSet,
-                      onMapCreated: (GoogleMapController controller) {
-                        _controllerGoogleMap.complete(controller);
-                        newGoogleMapController = controller;
-                        fetchPlaces();
-
-                        setState(() {
-                          bottomPaddingOfMap = 300.0;
-                        });
-                        _determinePosition(context);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 20,
-              ),
-
-              InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => BluetoothApp()),
-                  );
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.red,
-                  ),
-                  height: MediaQuery.of(context).size.height / 18,
-                  width: MediaQuery.of(context).size.width / 1.2,
-                  child:Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-        Icon(Icons.bluetooth, color: Colors.white60, size: 25),
-SizedBox(width: 10,),
-        Text("Connect Your device to vehicle ",style: TextStyle(color: Colors.white60,fontSize: 14,fontWeight: FontWeight.bold),),
-    ],
-    )
-
-                ),
-              )
+                )
 
 
 
@@ -415,8 +414,11 @@ SizedBox(width: 10,),
 
 
 
-            ],
-        ),
+              ],
+            ),
+          ),
+
+        ],
       ),
 
     );
@@ -484,7 +486,7 @@ SizedBox(width: 10,),
     PolylinePoints polylinePoints = PolylinePoints();
 
     List<PointLatLng> decodedPolyLinePointsResult =
-        polylinePoints.decodePolyline(details!.encodedPoints);
+    polylinePoints.decodePolyline(details!.encodedPoints);
 
     polylineSet.clear();
 
@@ -536,7 +538,7 @@ SizedBox(width: 10,),
       markerId: MarkerId("pickUpId"),
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
       infoWindow:
-          InfoWindow(title: initialPos.placeName, snippet: "My Location"),
+      InfoWindow(title: initialPos.placeName, snippet: "My Location"),
       position: pickUpLatlng,
     );
 
@@ -544,8 +546,8 @@ SizedBox(width: 10,),
       markerId: MarkerId("dropOffId"),
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
       infoWindow:
-          InfoWindow(
-              title: finalPos.placeName, snippet: "DropOff Location"),
+      InfoWindow(
+          title: finalPos.placeName, snippet: "DropOff Location"),
       position: pickUpLatlng,
     );
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 import 'package:vsmile/allWidgets/confiMap.dart';
@@ -84,7 +85,10 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   List<Place> places = [];
+  Place? selectedPlace;
 
+  Marker? selectedPlaceMarker;
+  GoogleMapController? mapController;
   Future<Position> getCurrentLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -118,8 +122,10 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+
+
   Future<void> fetchPlaces() async {
-    final mapkey = 'AIzaSyDGiDTfpX3lDemEOcxvkPALFEK9Z-RnjPs';
+    final mapkey = 'AIzaSyB33yWL3b5E00suRjPn5nMuPr3bZ_iHnqE';
     final placesService = PlacesService(mapkey);
 
     final currentLocation = await getCurrentLocation();
@@ -129,10 +135,28 @@ class _MapScreenState extends State<MapScreen> {
 
     setState(() {
       places = fetchedPlaces;
+      selectedPlaceMarker = null; // Clear selected place marker
+
     });
 
 
   }
+
+  void addSelectedPlaceMarker(Place place) {
+    setState(() {
+      selectedPlaceMarker = Marker(
+        markerId: MarkerId(place.name),
+        position: LatLng(place.lat, place.lng),
+        infoWindow: InfoWindow(title: place.name, snippet: place.vicinity),
+      );
+    });
+
+    // Move the camera to the selected place's position
+    mapController?.animateCamera(
+      CameraUpdate.newLatLng(LatLng(place.lat, place.lng)),
+    );
+  }
+
 
   @override
   void initState() {
@@ -152,6 +176,10 @@ class _MapScreenState extends State<MapScreen> {
           final place = places[index];
           return GestureDetector(
             onTap: () {
+              // Handle selection of a place
+              setState(() {
+                selectedPlace = place; // Store the selected place
+              });
 
               Navigator.pop(context,"obtainDirection");
 
