@@ -1,8 +1,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:vsmile/constant/const.dart';
 
-import '../test.dart';
+import '../home_page/dashboard_page.dart';
 
 
 
@@ -19,14 +20,18 @@ class _SplashScreenState extends State<SplashScreen> {
 
     _checkLocationPermission().then((status) {
       if (status == PermissionStatus.granted) {
-        // Location permission granted, navigate to the main screen
-        _navigateToMainScreen();
+        // Location permission granted, display the splash screen for 3 seconds
+        Future.delayed(Duration(seconds: 3), () {
+          // After 3 seconds, navigate to the main screen
+          _navigateToMainScreen();
+        });
       } else {
         // Location permission not granted, show a message and request permission
         _showPermissionMessage();
       }
     });
   }
+
 
   Future<PermissionStatus> _checkLocationPermission() async {
     final status = await Permission.location.status;
@@ -76,11 +81,24 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: FlutterLogo(
-          size: 200.0, // Adjust the size as needed
-        ),
-      ),
+      backgroundColor:Colors.white,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+            child: Container(
+              height: MediaQuery.of(context).size.height / 1.5,
+              width: MediaQuery.of(context).size.width / 1.5,
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage("assets/vsmile_splash.png"),
+                ),
+              ),
+            ),
+          ),
+
+        ],
+      )
     );
   }
 }

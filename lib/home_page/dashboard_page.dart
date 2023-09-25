@@ -4,31 +4,14 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-
 import 'package:http/http.dart' as http;
 import 'package:vsmile/constant/const.dart';
 import 'dart:convert';
 
 import 'dart:math' show cos, sqrt, asin;
 
-import 'bluetooth/bluetooth_main_page.dart';
+import '../bluetooth/bluetooth_main_page.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Maps',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MapView(),
-    );
-  }
-}
 
 class MapView extends StatefulWidget {
   @override
@@ -59,6 +42,8 @@ class _MapViewState extends State<MapView> {
   List<LatLng> polylineCoordinates = [];
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  late List<Marker> selectedPetrolPumpMarker;
 
   Widget _textField({
     required TextEditingController controller,
@@ -131,22 +116,42 @@ class _MapViewState extends State<MapView> {
     });
   }
 
-  // Call this method with your current location's coordinates (LatLng)
-  Future<List<Marker>> _fetchPetrolPumpsAndGasStations(LatLng currentLocation) async {
-    final apiKey = ""; // Replace with your Google Maps API Key
+  // Method for retrieving the address
+  _getAddress() async {
+    try {
+      List<Placemark> p = await placemarkFromCoordinates(
+          _currentPosition.latitude, _currentPosition.longitude);
 
-    // final apiKey = "AIzaSyB33yWL3b5E00suRjPn5nMuPr3bZ_iHnqE"; // Replace with your Google Maps API Key
+      Placemark place = p[0];
+
+      setState(() {
+        _currentAddress =
+            "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
+        startAddressController.text = _currentAddress;
+        _startAddress = _currentAddress;
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  // Call this method with your current location's coordinates (LatLng)
+  Future<List<Marker>> _fetchPetrolPumpsAndGasStations(
+      LatLng currentLocation) async {
+    final apiKey =
+        "AIzaSyB33yWL3b5E00suRjPn5nMuPr3bZ_iHnqE"; // Replace with your Google Maps API Key
     final radius = 10000; // 10 kilometers in meters
 
     final location = "${currentLocation.latitude},${currentLocation.longitude}";
-    final types = "gas_station|petrol_station"; // Include both gas_station and petrol_station
+    final types =
+        "gas_station|petrol_station"; // Include both gas_station and petrol_station
 
     final url = Uri.parse(
       "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-          "?location=$location"
-          "&radius=$radius"
-          "&types=$types"
-          "&key=$apiKey",
+      "?location=$location"
+      "&radius=$radius"
+      "&types=$types"
+      "&key=$apiKey",
     );
 
     final response = await http.get(url);
@@ -169,6 +174,13 @@ class _MapViewState extends State<MapView> {
             infoWindow: InfoWindow(
               title: name,
             ),
+            onTap: () {
+              setState(() {
+                selectedPetrolPumpMarker = markers;
+              });
+            },
+
+
           );
 
           markers.add(marker);
@@ -191,7 +203,8 @@ class _MapViewState extends State<MapView> {
     try {
       List<Location> locations = await locationFromAddress(address);
       if (locations.isNotEmpty) {
-        final LatLng latLng = LatLng(locations.first.latitude, locations.first.longitude);
+        final LatLng latLng =
+            LatLng(locations.first.latitude, locations.first.longitude);
         return latLng;
       }
     } catch (e) {
@@ -200,24 +213,25 @@ class _MapViewState extends State<MapView> {
     return null;
   }
 
-  // Method for retrieving the address
-  _getAddress() async {
-    try {
-      List<Placemark> p = await placemarkFromCoordinates(
-          _currentPosition.latitude, _currentPosition.longitude);
+  void _calculateDistanceAndShowSnackBar(
+      double destinationLatitude,
+      double destinationLongitude,
+      ) async {
+    double distance = await _calculateDistanceFromCurrentLocation(
+      destinationLatitude,
+      destinationLongitude,
+    );
 
-      Placemark place = p[0];
-
-      setState(() {
-        _currentAddress =
-        "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
-        startAddressController.text = _currentAddress;
-        _startAddress = _currentAddress;
-      });
-    } catch (e) {
-      print(e);
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Distance from current location: ${distance.toStringAsFixed(2)} km',
+        ),
+      ),
+    );
   }
+
+
 
   // Method for calculating the distance between two places
   Future<bool> _calculateDistance() async {
@@ -227,9 +241,7 @@ class _MapViewState extends State<MapView> {
       // Retrieving placemarks from addresses
       List<Location> startPlacemark = await locationFromAddress(_startAddress);
       List<Location> destinationPlacemark =
-      await locationFromAddress(_destinationAddress);
-
-
+          await locationFromAddress(_destinationAddress);
 
       // Use the retrieved coordinates of the current position,
       // instead of the address if the start position is user's
@@ -251,9 +263,7 @@ class _MapViewState extends State<MapView> {
 
       // Start Location Marker
       Marker startMarker = Marker(
-        markerId: MarkerId('start'), // Custom identifier
-
-        // markerId: MarkerId(startCoordinatesString),
+        markerId: MarkerId(startCoordinatesString),
         position: LatLng(startLatitude, startLongitude),
         infoWindow: InfoWindow(
           title: 'Start $startCoordinatesString',
@@ -278,7 +288,8 @@ class _MapViewState extends State<MapView> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Distance from current location: ${distance.toStringAsFixed(2)} km'),
+              content: Text(
+                  'Distance from current location: ${distance.toStringAsFixed(2)} km'),
             ),
           );
         },
@@ -286,7 +297,6 @@ class _MapViewState extends State<MapView> {
 
       markers.add(startMarker);
       markers.add(destinationMarker);
-
 
       print(
         'START COORDINATES: ($startLatitude, $startLongitude)',
@@ -328,14 +338,6 @@ class _MapViewState extends State<MapView> {
         ),
       );
 
-      // Calculating the distance between the start and the end positions
-      // with a straight path, without considering any route
-      // double distanceInMeters = await Geolocator.bearingBetween(
-      //   startLatitude,
-      //   startLongitude,
-      //   destinationLatitude,
-      //   destinationLongitude,
-      // );
 
       await _createPolylines(startLatitude, startLongitude, destinationLatitude,
           destinationLongitude);
@@ -365,7 +367,8 @@ class _MapViewState extends State<MapView> {
     return false;
   }
 
-  Future<double> _calculateDistanceFromCurrentLocation(double destinationLatitude, double destinationLongitude) async {
+  Future<double> _calculateDistanceFromCurrentLocation(
+      double destinationLatitude, double destinationLongitude) async {
     double startLatitude = _currentPosition.latitude;
     double startLongitude = _currentPosition.longitude;
 
@@ -389,19 +392,16 @@ class _MapViewState extends State<MapView> {
     return 12742 * asin(sqrt(a));
   }
 
-
   // Create the polylines for showing the route between two places
   _createPolylines(
-      double startLatitude,
-      double startLongitude,
-      double destinationLatitude,
-      double destinationLongitude,
-      ) async {
+    double startLatitude,
+    double startLongitude,
+    double destinationLatitude,
+    double destinationLongitude,
+  ) async {
     polylinePoints = PolylinePoints();
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      "", // Google Maps API Key
-
-      // "AIzaSyB33yWL3b5E00suRjPn5nMuPr3bZ_iHnqE", // Google Maps API Key
+      "AIzaSyB33yWL3b5E00suRjPn5nMuPr3bZ_iHnqE", // Google Maps API Key
       PointLatLng(startLatitude, startLongitude),
       PointLatLng(destinationLatitude, destinationLongitude),
       travelMode: TravelMode.driving,
@@ -433,27 +433,60 @@ class _MapViewState extends State<MapView> {
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
+
     return Container(
       height: height,
       width: width,
       child: Scaffold(
         backgroundColor: kScaffoldBackground,
         key: _scaffoldKey,
+        appBar: AppBar(
+          backgroundColor: KCard1,
+          leading: Padding(
+            padding: const EdgeInsets.only(
+              left: 12,
+            ),
+            child: ClipRect(
+              child: Container(
+                color: KCard1, // Set your desired background color here
+                child: CircleAvatar(
+                  radius: 13,
+                  backgroundImage: AssetImage('assets/vsmile_logo.png'),
+                ),
+              ),
+            )
+          ),
+          title: Center(
+              child: Text(
+            "vSmile",
+            style: TextStyle(fontWeight: FontWeight.w600),
+          )),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20),
+              child: InkWell(
+                  onTap: () {},
+                  child: Icon(
+                    Icons.notification_add_outlined,
+                    color: Colors.black,
+                    size: 25,
+                  )),
+            ), // You can customize the icon as needed
+          ],
+        ),
         body: SingleChildScrollView(
           child: Stack(
             children: <Widget>[
               // Map View
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 320),
-                  child: Container(
-                    height: height * 0.54,
-                    width: MediaQuery.of(context).size.width / 1.1,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20.0), // Adjust the border radius as needed
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20.0), // Same border radius as the container
+                  padding: const EdgeInsets.only(top: 285),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                        20.0), // Adjust the border radius as needed
+                    child: Container(
+                      height: height * 0.50,
+                      width: MediaQuery.of(context).size.width / 1.1,
                       child: GoogleMap(
                         markers: Set<Marker>.from(markers),
                         initialCameraPosition: _initialLocation,
@@ -495,10 +528,13 @@ class _MapViewState extends State<MapView> {
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             Text(
-                              'vSmile',
-                              style: TextStyle(fontSize: 20.0,fontWeight: FontWeight.w600,color: kTitleTextColor),
+                              'Choose Nearby Fuel Stations',
+                              style: TextStyle(
+                                  fontSize: 20.0,
+                                  fontWeight: FontWeight.w600,
+                                  color: kTitleTextColor),
                             ),
-                            SizedBox(height: 10),
+                            SizedBox(height: 20),
                             _textField(
                                 label: 'Start',
                                 hint: 'Choose starting point',
@@ -506,7 +542,8 @@ class _MapViewState extends State<MapView> {
                                 suffixIcon: IconButton(
                                   icon: Icon(Icons.my_location),
                                   onPressed: () {
-                                    startAddressController.text = _currentAddress;
+                                    startAddressController.text =
+                                        _currentAddress;
                                     _startAddress = _currentAddress;
                                   },
                                 ),
@@ -519,27 +556,12 @@ class _MapViewState extends State<MapView> {
                                   });
                                 }),
                             SizedBox(height: 10),
-                            // _textField(
-                            //     label: 'Destination',
-                            //     hint: 'Choose destination',
-                            //     prefixIcon: Icon(Icons.looks_two),
-                            //     controller: destinationAddressController,
-                            //     focusNode: desrinationAddressFocusNode,
-                            //     width: width,
-                            //     locationCallback: (String value) {
-                            //       setState(() {
-                            //         _destinationAddress = value;
-                            //       });
-                            //     },
-                            //
-                            //
-                            //     ),
-
                             _textField(
                               label: 'Destination',
                               hint: 'Choose destination',
                               prefixIcon: Icon(Icons.looks_two),
                               controller: destinationAddressController,
+
                               focusNode: desrinationAddressFocusNode,
                               width: width,
                               locationCallback: (String value) {
@@ -553,13 +575,11 @@ class _MapViewState extends State<MapView> {
                                   _fetchPetrolPumpsAndGasStations;
                                 }
                               },
+
                             ),
-
-
-
                             SizedBox(height: 10),
                             Visibility(
-                              visible: _placeDistance == null ? false : true,
+                              visible: _destinationAddress.isNotEmpty && _placeDistance != null,
                               child: Text(
                                 'DISTANCE: $_placeDistance km',
                                 style: TextStyle(
@@ -569,115 +589,143 @@ class _MapViewState extends State<MapView> {
                               ),
                             ),
                             SizedBox(height: 5),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: MediaQuery.of(context).size.width / 3,
+                                  height:
+                                      MediaQuery.of(context).size.height / 20,
+                                  child:
+                                  ElevatedButton(
+                                    onPressed: (_startAddress.isNotEmpty &&
+                                            _destinationAddress.isNotEmpty)
+                                        ? () async {
+                                            startAddressFocusNode.unfocus();
+                                            desrinationAddressFocusNode
+                                                .unfocus();
+                                            setState(() {
+                                              if (markers.isNotEmpty) markers.clear();
+                                              if (polylines.isNotEmpty) polylines.clear();
+                                              if (polylineCoordinates.isNotEmpty) polylineCoordinates.clear();
+                                              _placeDistance = null;
+                                            });
 
-               Row(
-                 children: [
-                   ElevatedButton(
-                     onPressed: (_startAddress.isNotEmpty && _destinationAddress.isNotEmpty)
-                         ? () async {
-                       startAddressFocusNode.unfocus();
-                       desrinationAddressFocusNode.unfocus();
-                       setState(() {
-                         if (markers.isNotEmpty) markers.clear();
-                         if (polylines.isNotEmpty) polylines.clear();
-                         if (polylineCoordinates.isNotEmpty) polylineCoordinates.clear();
-                         _placeDistance = null;
-                       });
+                                            if (await _calculateDistance()) {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                      'Distance Calculated Successfully'),
+                                                ),
+                                              );
+                                            } else {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                      'Error Calculating Distance'),
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        : () {
+                                            // Destination field is empty, show a message
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                    'Destination field is empty!'),
+                                              ),
+                                            );
+                                          },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Route'.toUpperCase(),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontSize: 16.0,
+                                        ),
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      // primary: Colors.red,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 20,
+                                ),
+                                Container(
+                                  width: MediaQuery.of(context).size.width / 3,
+                                  height:
+                                      MediaQuery.of(context).size.height / 20,
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.circular(
+                                        20.0), // Adjust the border radius as needed
+                                  ),
+                                  child: InkWell(
+                                    onTap: () async {
+                                      if (_destinationAddress.isNotEmpty) {
+                                        // Convert the destination address to LatLng
+                                        final destination =
+                                            await _getLatLngFromAddress(
+                                                _currentAddress);
 
-                       if (await _calculateDistance()) {
-                         ScaffoldMessenger.of(context).showSnackBar(
-                           SnackBar(
-                             content: Text('Distance Calculated Successfully'),
-                           ),
-                         );
-                       } else {
-                         ScaffoldMessenger.of(context).showSnackBar(
-                           SnackBar(
-                             content: Text('Error Calculating Distance'),
-                           ),
-                         );
-                       }
-                     }
-                         : () {
-                       // Destination field is empty, show a message
-                       ScaffoldMessenger.of(context).showSnackBar(
-                         SnackBar(
-                           content: Text('Destination field is empty!'),
-                         ),
-                       );
-                     },
-                     child: Padding(
-                       padding: const EdgeInsets.all(8.0),
-                       child: Text(
-                         'Show Route'.toUpperCase(),
-                         style: TextStyle(fontWeight: FontWeight.w600,
-                           color: Colors.black,
-                           fontSize: 16.0,
-                         ),
-                       ),
-                     ),
-                     style: ElevatedButton.styleFrom(
-                       // primary: Colors.red,
-                       shape: RoundedRectangleBorder(
-                         borderRadius: BorderRadius.circular(20.0),
-                       ),
-                     ),
-                   ),
-                   SizedBox(width: 20,),
-                   Container(
-                     height: height * 0.050,
-                     width: 150,
-                     decoration: BoxDecoration(
-                       color: Colors.red,
-                       borderRadius: BorderRadius.circular(20.0), // Adjust the border radius as needed
-                     ),
-                     child: InkWell(
-                       onTap: () async {
-                         if (_destinationAddress.isNotEmpty) {
-                           // Convert the destination address to LatLng
-                           final destination = await _getLatLngFromAddress(_destinationAddress);
+                                        if (destination != null) {
+                                          // Call the method to fetch petrol pumps and gas stations
+                                          final petrolPumpsMarkers =
+                                              await _fetchPetrolPumpsAndGasStations(
+                                                  destination);
 
-                           if (destination != null) {
-                             // Call the method to fetch petrol pumps and gas stations
-                             final petrolPumpsMarkers = await _fetchPetrolPumpsAndGasStations(destination);
-
-                             // Update the markers on the map
-                             setState(() {
-                               markers.clear();
-                               markers.addAll(petrolPumpsMarkers);
-                             });
-                           }
-                         } else {
-                           // Destination field is empty, show a snackbar message
-                           ScaffoldMessenger.of(context).showSnackBar(
-                             SnackBar(
-                               content: Text('Destination field is empty!'),
-                             ),
-                           );
-                         }
-                       },
-                       child:
-                       Row(
-                         children: [
-                           Center(
-                             child: Text(
-                               '       nearby\n   fuel stations ',
-                               style: TextStyle(
-                                 color: Colors.black,
-                                 fontSize: 14, // Adjust the font size as needed
-                                 fontWeight: FontWeight.bold, // Adjust the font weight as needed
-                               ),
-                             ),
-                           ),
-                           SizedBox(width: 10), // Adjust the spacing between text and button
-                           Icon(Icons.search, color: Colors.white), // You can customize the icon as needed
-                         ],
-                       ),
-                     ),
-                   )
-                 ],
-               )
-
+                                          // Update the markers on the map
+                                          setState(() {
+                                            markers.clear();
+                                            markers.addAll(petrolPumpsMarkers);
+                                          });
+                                        }
+                                      } else {
+                                        // Destination field is empty, show a snackbar message
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                                'Destination field is empty!'),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Center(
+                                          child: Text(
+                                            '          Nearby \n     Fuel stations',
+                                            style: TextStyle(
+                                              color: Colors.white60,
+                                              fontSize:
+                                                  14, // Adjust the font size as needed
+                                              fontWeight: FontWeight
+                                                  .bold, // Adjust the font weight as needed
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                            width:
+                                                10), // Adjust the spacing between text and button
+                                        // Icon(Icons.search, color: Colors.white), // You can customize the icon as needed
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              ],
+                            )
                           ],
                         ),
                       ),
@@ -685,57 +733,59 @@ class _MapViewState extends State<MapView> {
                   ),
                 ),
               ),
-              SafeArea(
-
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 30.0,top: 600),
-                  child: Column(
-                    children: <Widget>[
-                      ClipOval(
-                        child: Material(
-                          color: Colors.blue.shade100, // button color
-                          child: InkWell(
-                            splashColor: Colors.blue, // inkwell color
-                            child: SizedBox(
-                              width: 30,
-                              height: 30,
-                              child: Icon(Icons.add),
+              Align(
+                alignment: Alignment.centerRight,
+                child: SafeArea(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.only(left: 10.0, top: 480, right: 30),
+                    child: Column(
+                      children: <Widget>[
+                        ClipOval(
+                          child: Material(
+                            color: Colors.blue.shade100, // button color
+                            child: InkWell(
+                              splashColor: Colors.blue, // inkwell color
+                              child: SizedBox(
+                                width: 30,
+                                height: 30,
+                                child: Icon(Icons.add),
+                              ),
+                              onTap: () {
+                                mapController.animateCamera(
+                                  CameraUpdate.zoomIn(),
+                                );
+                              },
                             ),
-                            onTap: () {
-                              mapController.animateCamera(
-                                CameraUpdate.zoomIn(),
-                              );
-                            },
                           ),
                         ),
-                      ),
-                      SizedBox(height: 20),
-                      ClipOval(
-                        child: Material(
-                          color: Colors.blue.shade100, // button color
-                          child: InkWell(
-                            splashColor: Colors.blue, // inkwell color
-                            child: SizedBox(
-                              width: 30,
-                              height: 30,
-                              child: Icon(Icons.remove),
+                        SizedBox(height: 20),
+                        ClipOval(
+                          child: Material(
+                            color: Colors.blue.shade100, // button color
+                            child: InkWell(
+                              splashColor: Colors.blue, // inkwell color
+                              child: SizedBox(
+                                width: 30,
+                                height: 30,
+                                child: Icon(Icons.remove),
+                              ),
+                              onTap: () {
+                                mapController.animateCamera(
+                                  CameraUpdate.zoomOut(),
+                                );
+                              },
                             ),
-                            onTap: () {
-                              mapController.animateCamera(
-                                CameraUpdate.zoomOut(),
-                              );
-                            },
                           ),
-                        ),
-                      )
-                    ],
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
-
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 800),
+                  padding: const EdgeInsets.only(top: 720),
                   child: InkWell(
                     onTap: () {
                       Navigator.push(
@@ -750,16 +800,23 @@ class _MapViewState extends State<MapView> {
                         ),
                         height: MediaQuery.of(context).size.height / 18,
                         width: MediaQuery.of(context).size.width / 1.2,
-                        child:Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.bluetooth, color: Colors.white60, size: 25),
-                            SizedBox(width: 10,),
-                            Text("Connect Your device to vehicle ",style: TextStyle(color: Colors.white60,fontSize: 14,fontWeight: FontWeight.bold),),
+                            Icon(Icons.bluetooth,
+                                color: Colors.white60, size: 25),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              "Connect Your device to vehicle ",
+                              style: TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold),
+                            ),
                           ],
-                        )
-
-                    ),
+                        )),
                   ),
                 ),
               ),
@@ -768,15 +825,18 @@ class _MapViewState extends State<MapView> {
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: Padding(
-                    padding: const EdgeInsets.only(top:650,right: 30),
+                    padding: const EdgeInsets.only(
+                      right: 30.0,
+                      top: 300.0,
+                    ),
                     child: ClipOval(
                       child: Material(
                         color: Colors.orange, // button color
                         child: InkWell(
                           splashColor: Colors.orange, // inkwell color
                           child: SizedBox(
-                            width: 40,
-                            height: 40,
+                            width: 30,
+                            height: 30,
                             child: Icon(Icons.my_location),
                           ),
                           onTap: () {
@@ -798,17 +858,10 @@ class _MapViewState extends State<MapView> {
                   ),
                 ),
               ),
-
-
             ],
           ),
         ),
-
       ),
     );
   }
-
-
-
-
 }

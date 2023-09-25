@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vsmile/dataHandler/appData.dart';
-import 'package:vsmile/test.dart';
+import 'package:vsmile/home_page/dashboard_page.dart';
 import 'allWidgets/mainScreen.dart';
 import 'allWidgets/placesFetch.dart';
 import 'allWidgets/splashScreen.dart';
