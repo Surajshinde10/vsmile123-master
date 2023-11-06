@@ -384,10 +384,10 @@ class _MainScreenState extends State<MainScreen> {
 
                 InkWell(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => BluetoothApp()),
-                    );
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(builder: (context) => BluetoothApp()),
+                    // );
                   },
                   child: Container(
                       decoration: BoxDecoration(
